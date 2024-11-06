@@ -1,42 +1,26 @@
 // components/ProgressModal.tsx
-import React, { useState } from 'react';
+import React from 'react';
 import { ProgressResponse } from '../types';
-import { fetchBatchProgress } from '../api/resendApi';
+import useFetchProgress from '../hooks/useFetchProgress';
 
 interface ProgressModalProps {
   batchId: number;
+  isOpen: boolean;
   onClose: () => void;
 }
 
-const ProgressModal: React.FC<ProgressModalProps> = ({ batchId, onClose }) => {
-  const [progress, setProgress] = useState<ProgressResponse | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
+const ProgressModal: React.FC<ProgressModalProps> = ({ batchId, isOpen, onClose }) => {
+  const { progress, loading } = useFetchProgress(batchId, isOpen);
 
-  // Function to fetch the batch progress
-  const refreshProgress = async () => {
-    setLoading(true);
-    try {
-      const response = await fetchBatchProgress(batchId);
-      setProgress(response);
-    } catch (error) {
-      console.error('Error fetching batch progress:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Automatically fetch progress once when the modal opens
-  React.useEffect(() => {
-    refreshProgress();
-  }, [batchId]);
+  if (!isOpen) return null;
 
   return (
     <div className="modal">
       <h2>Batch Progress</h2>
-      
+
       {/* Display the Batch ID */}
       <p><strong>Batch ID:</strong> {batchId}</p>
-      
+
       {loading ? (
         <p>Loading...</p>
       ) : progress ? (
@@ -47,10 +31,7 @@ const ProgressModal: React.FC<ProgressModalProps> = ({ batchId, onClose }) => {
       ) : (
         <p>No progress data available.</p>
       )}
-      
-      {/* Refresh button to manually fetch progress */}
-      <button onClick={refreshProgress}>Refresh Progress</button>
-      
+
       {/* Close button to exit the modal */}
       <button onClick={onClose}>Close</button>
     </div>
